@@ -46,7 +46,18 @@ services:
       - command:
         - sh
         - '-c'
-        - 'bundle exec rails branding:update && if [ -n "$${BRAND_ASSETS_URL}" ]; then deployment/extract_brand_assets.sh "$${BRAND_ASSETS_URL}"; fi'
+        - |
+          i=0
+          until bundle exec rails branding:update; do
+            i=$((i + 1))
+            if [ "$$i" -ge 60 ]; then
+              echo "branding:update still failing after $$i attempts (5 min), giving up"
+              exit 1
+            fi
+            echo "Database not ready yet, retrying branding:update in 5s ($$i/60)..."
+            sleep 5
+          done
+          if [ -n "$${BRAND_ASSETS_URL}" ]; then deployment/extract_brand_assets.sh "$${BRAND_ASSETS_URL}"; fi
     healthcheck:
       test:
         - CMD-SHELL
