@@ -4,6 +4,8 @@ services:
   rails:
     image: 'ghcr.io/fazer-ai/chatwoot:latest'
     pull_policy: always
+    ports:
+      - '3456:3000'
     volumes:
       - 'storage:/app/storage'
     depends_on:
